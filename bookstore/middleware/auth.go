@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"bookstore/bookstore/model"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
@@ -8,11 +10,19 @@ import (
 func AuthRequire(levelRequire int) gin.HandlerFunc {
 	return func (c *gin.Context) {
 		session := sessions.Default(c)
-		level := session.Get("level")
-		if level == nil || level.(int) > levelRequire {
-			c.AbortWithStatusJSON(403, gin.H{
+		v := session.Get("auth")
+		if v == nil{
+			c.JSON(403, gin.H{
 				"msg": "Permission Denied",
 			})
+			return
+		}
+		auth, ok := v.(model.UserAuth)
+		if !ok || auth.UserType > levelRequire {
+			c.JSON(403, gin.H{
+				"msg": "Permission Denied",
+			})
+			return
 		}
 		c.Next()
 	}

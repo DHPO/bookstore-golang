@@ -27,14 +27,14 @@ func (lc *LoginController) Login(c *gin.Context) {
 	}
 	userAuth, err := lc.service.CheckUser(form.Username, form.Password)
 	if err != nil {
-		c.JSON(404, gin.H{
+		c.JSON(200, gin.H{
 			"status": -100,
 			"msg": "用户名或密码错误",
 		})
 		return
 	}
 	session := sessions.Default(c)
-	session.Set("auth", 1)
+	session.Set("auth", userAuth)
 	err = session.Save()
 	if err != nil {
 		panic(err)

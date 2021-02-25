@@ -31,7 +31,14 @@ func NewApplication(
 	// set middleware
 	store := cookie.NewStore([]byte("secretKeyssa;kldjhasodhfa;"))
 	app.engine.Use(sessions.Sessions("gin-session", store))
-	app.engine.Use(cors.Default())
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AddAllowHeaders("*")
+	corsConfig.AddAllowMethods("*")
+	corsConfig.AllowOrigins = append(corsConfig.AllowOrigins, "http://10.0.0.75:3000")
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowWildcard = true
+	corsMiddleware := cors.New(corsConfig)
+	app.engine.Use(corsMiddleware)
 
 	// set controller
 	bc.Bind(app.engine.Group(""))

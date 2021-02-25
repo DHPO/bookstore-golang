@@ -4,7 +4,6 @@ import (
 	"bookstore/bookstore/middleware"
 	"bookstore/bookstore/service"
 	"strconv"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,9 +11,13 @@ type BookController struct {
 	service service.BookService
 }
 
+type GetBookOpt struct {
+	ID string `json:"id" binding:"required"`
+}
+
 func (bc *BookController) GetBook(c *gin.Context) {
-	bookIDStr := c.Param("id")
-	bookID, err := strconv.Atoi(bookIDStr)
+	opt := GetBookOpt{}
+	err := c.ShouldBind(&opt)
 	if err != nil {
 		c.JSON(400, gin.H{
 			"data": nil,
@@ -22,6 +25,7 @@ func (bc *BookController) GetBook(c *gin.Context) {
 		})
 		return
 	}
+	bookID, err := strconv.Atoi(opt.ID)
 	book, err := bc.service.FindBookById(bookID)
 	if err != nil {
 		c.JSON(404, gin.H{
@@ -30,21 +34,17 @@ func (bc *BookController) GetBook(c *gin.Context) {
 		})
 		return
 	}
-	c.JSON(200, gin.H{
-		"data": book,
-	})
+	c.JSON(200, book)
 }
 
 func (bc *BookController) GetBooks(c *gin.Context) {
 	books := bc.service.GetBooks()
-	c.JSON(200, gin.H{
-		"data": books,
-	})
+	c.JSON(200, books)
 }
 
 func (bc *BookController) Bind(r *gin.RouterGroup) {
-	r.GET("/getBooks", middleware.AuthRequire(1), bc.GetBooks)
-	r.GET("/getBook/:id", middleware.AuthRequire(1), bc.GetBook)
+	r.POST("/getBooks", middleware.AuthRequire(1), bc.GetBooks)
+	r.POST("/getBook", middleware.AuthRequire(1), bc.GetBook)
 }
 
 func NewBookController(service service.BookService) *BookController {
